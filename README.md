@@ -1,26 +1,31 @@
 # laser-control
 
-Contrôle minimal du laser **TOPTICA DLC pro** en Python : test du courant diode et du piezo.
+Contrôle du laser **TOPTICA DLC pro** en Python.
 
-## Installation (sur ta machine, avec accès réseau)
+## Installation (une seule fois, avec accès réseau)
 
 ```bash
 cd laser-control
-uv sync          # installe les dépendances et crée l'environnement .venv
+uv sync
 ```
 
 ## Utilisation
 
 ```bash
-uv run laser-control 192.168.1.100     # IP de ton DLC pro
-uv run laser-control                   # utilise l'IP par défaut (voir __init__.py)
+uv run python test_allumage.py            # test émission on/off
+uv run python test_methodes.py            # test de toutes les méthodes (avec pauses)
+uv run python template.py                 # modèle vide pour ton code
 ```
 
-> ⚠️ Le script ne fait que changer les **consignes** (courant, piezo). Il **n'active pas**
-> l'émission laser. Pour plus de fonctions (émission, température, scan, lock…),
-> voir `../doc laser/README.md`.
+Chaque script se connecte à l'IP par défaut (`HOST` dans le fichier) ou à celle passée en argument :
 
-## Dépendances
+```bash
+uv run python test_allumage.py 192.168.55.1
+```
 
-- `toptica-lasersdk` : SDK officiel TOPTICA (contrôle du DLC pro)
-- `numpy` : traitement numérique (prêt pour l'acquisition Red Pitaya)
+## Fichiers
+
+- `laser.py` — classe `Laser` (contrôle du DLC pro)
+- `test_allumage.py` — test connexion + émission on/off
+- `test_methodes.py` — test pas-à-pas de toutes les méthodes
+- `template.py` — squelette pour écrire ton code
