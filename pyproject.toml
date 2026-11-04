@@ -1,0 +1,17 @@
+[project]
+name = "laser-control"
+version = "0.1.0"
+description = "Contrôle minimal du laser TOPTICA DLC pro (courant + piezo)"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "toptica-lasersdk>=3.3.0",
+    "numpy>=1.26",
+]
+
+[project.scripts]
+laser-control = "laser_control:main"
+
+[build-system]
+requires = ["uv_build>=0.12.11,<0.13.0"]
+build-backend = "uv_build"
