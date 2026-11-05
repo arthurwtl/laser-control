@@ -10,10 +10,10 @@ def main():
     laser = Laser(host=host)
 
     with laser:
-        print("Connecté :", laser.serial)
-        print("Firmware  :", laser.firmware)
-        print("Santé     :", laser.health)
-        print("Interlock :", "OUVERT" if laser.interlock_open else "fermé")
+        print("Connected:", laser.serial)
+        print("Firmware :", laser.firmware)
+        print("Health   :", laser.health)
+        print("Interlock:", "OPEN" if laser.interlock_open else "closed")
 
         # coder ici
 

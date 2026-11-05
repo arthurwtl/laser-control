@@ -117,11 +117,11 @@ class Laser:
         return False
 
     # --------------------------------------------------------------------- piezo
-    def set_piezo(self, volts):
+    def set_offset(self, volts):
         """Fixe la tension piezo (V)."""
         self.set('laser1:dl:pc:voltage-set', float(volts))  # V
 
-    def get_piezo(self):
+    def get_offset(self):
         """Tension piezo réelle (V)."""
         return self._c.get('laser1:dl:pc:voltage-act')  # V
 
@@ -176,25 +176,25 @@ class Laser:
         return self._c.get(name)
 
     def set(self, name, value):
-        """Écrit un paramètre ; en cas d'erreur, affiche une explication courte."""
+        """Writes a parameter; prints a short explanation on error."""
         try:
             code = self._c.set(name, value)
             if code == 2:
-                print(f"⚠️  {name} : valeur écrêtée (hors limites, ramenée au min/max).")
+                print(f"⚠️  {name} : value clipped (out of range, clamped to min/max).")
             return code
         except Exception as exc:
             print(f"❌  {name} : {self._expliquer(exc)}")
             return None
 
     def _expliquer(self, exc):
-        """Traduit une erreur du contrôleur en explication courte."""
+        """Translates a controller error into a short explanation."""
         msg = str(exc)
         if '-11' in msg:
-            return "paramètre en lecture seule (non modifiable). Cf. Command Reference §2.3."
+            return "read-only parameter (not settable). See Command Reference §2.3."
         if '-3' in msg:
-            return "paramètre inexistant (nom incorrect ou absent de ce modèle). Cf. Command Reference §2.3."
+            return "no such parameter (wrong name or not on this model). See Command Reference §2.3."
         if '-1' in msg:
-            return "argument invalide (type ou valeur incorrect). Cf. Command Reference §2.3."
+            return "invalid argument (wrong type or value). See Command Reference §2.3."
         return msg
 
     def exec(self, name, **kwargs):

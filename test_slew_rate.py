@@ -10,15 +10,15 @@ def main():
     laser = Laser(host=host)
 
     with laser:
-        print("=== Slew rate (vitesse max de variation des consignes) ===")
-        print("Courant :")
-        print("  slew-rate          :", laser.get('laser1:dl:cc:output-filter:slew-rate'), "mA/s")
-        print("  limite active      :", laser.get('laser1:dl:cc:output-filter:slew-rate-enabled'))
-        print("  actuellement limité:", laser.get('laser1:dl:cc:output-filter:slew-rate-limited'))
-        print("Piezo :")
-        print("  slew-rate          :", laser.get('laser1:dl:pc:output-filter:slew-rate'), "V/s")
-        print("  limite active      :", laser.get('laser1:dl:pc:output-filter:slew-rate-enabled'))
-        print("  actuellement limité:", laser.get('laser1:dl:pc:output-filter:slew-rate-limited'))
+        print("=== Slew rate (max rate of change of setpoints) ===")
+        print("Current:")
+        print("  slew-rate      :", laser.get('laser1:dl:cc:output-filter:slew-rate'), "mA/s")
+        print("  limit enabled  :", laser.get('laser1:dl:cc:output-filter:slew-rate-enabled'))
+        print("  currently limited:", laser.get('laser1:dl:cc:output-filter:slew-rate-limited'))
+        print("Piezo:")
+        print("  slew-rate      :", laser.get('laser1:dl:pc:output-filter:slew-rate'), "V/s")
+        print("  limit enabled  :", laser.get('laser1:dl:pc:output-filter:slew-rate-enabled'))
+        print("  currently limited:", laser.get('laser1:dl:pc:output-filter:slew-rate-limited'))
 
 
 if __name__ == "__main__":
