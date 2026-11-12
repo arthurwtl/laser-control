@@ -1,6 +1,6 @@
-"""Classe prête à l'emploi pour piloter la carte Red Pitaya (acquisition SCPI).
+"""Ready-to-use class to drive the Red Pitaya (SCPI acquisition).
 
-Elle enveloppe la bibliothèque `redpitaya_scpi` et masque les commandes SCPI brutes.
+Wraps the `redpitaya_scpi` library and hides raw SCPI commands.
 """
 import time
 
@@ -9,24 +9,24 @@ import redpitaya_scpi as scpi
 
 
 class RedPitaya:
-    """Carte d'acquisition Red Pitaya STEMlab 125-14.
+    """Red Pitaya STEMlab 125-14 acquisition board.
 
-    Utilisation :
+    Usage:
         rp = RedPitaya('169.254.140.238')
         with rp:
             print(rp.info)
             v = rp.acquire(dec=65536)
     """
 
-    ADC_RATE = 125e6    # STEMlab 125-14 : 125 MS/s
-    BUFFER = 16384      # taille du buffer d'acquisition (échantillons)
+    ADC_RATE = 125e6    # STEMlab 125-14: 125 MS/s
+    BUFFER = 16384      # acquisition buffer size (samples)
 
     def __init__(self, host, port=5000):
         self._host = host
         self._port = port
         self._rp = None
 
-    # ------------------------------------------------------------------ connexion
+    # ------------------------------------------------------------------ connection
     def __enter__(self):
         self._rp = scpi.scpi(self._host, port=self._port)
         return self
@@ -35,15 +35,15 @@ class RedPitaya:
         if self._rp:
             self._rp.close()
 
-    # -------------------------------------------------------------------- infos
+    # --------------------------------------------------------------------- info
     @property
     def info(self):
-        """Identification de la carte (*IDN?)."""
+        """Board identification (*IDN?)."""
         return self._rp.txrx_txt('*IDN?')
 
     # -------------------------------------------------------------- acquisition
     def arm(self, dec):
-        """Arme l'acquisition et jette le buffer périmé (une seule fois par décimation)."""
+        """Arm the acquisition and discard the stale buffer (once per decimation)."""
         rp = self._rp
         rp.tx_txt('ACQ:RST')
         rp.tx_txt(f'ACQ:DEC {dec}')
@@ -51,7 +51,7 @@ class RedPitaya:
         time.sleep(self.BUFFER / self.sample_rate(dec))
 
     def read(self, channel=1):
-        """Déclenche et lit une acquisition (sans re-jeter le buffer)."""
+        """Trigger and read one acquisition (without re-discarding the buffer)."""
         rp = self._rp
         rp.tx_txt('ACQ:TRIG NOW')
         while True:
@@ -67,35 +67,35 @@ class RedPitaya:
         return np.array([float(x) for x in s.strip('{}\n\r').split(',')])
 
     def acquire(self, channel=1, dec=1):
-        """Acquisition one-shot (arme puis lit)."""
+        """One-shot acquisition (arm then read)."""
         self.arm(dec)
         return self.read(channel)
 
     def intensity(self, channel=1, dec=65536, n=10):
-        """Intensité moyenne (V) sur n acquisitions → (moyenne, écart-type)."""
+        """Mean intensity (V) over n acquisitions -> (mean, std)."""
         self.arm(dec)
         vals = [self.read(channel).mean() for _ in range(n)]
         return float(np.mean(vals)), float(np.std(vals))
 
     # ------------------------------------------------------------------ helpers
     def sample_rate(self, dec):
-        """Taux d'échantillonnage (éch./s) pour une décimation donnée."""
+        """Sample rate (samples/s) for a given decimation."""
         return self.ADC_RATE / dec
 
     def time_axis(self, dec):
-        """Axe des temps (s) correspondant aux échantillons acquis."""
+        """Time axis (s) of the acquired samples."""
         return np.arange(self.BUFFER) / self.sample_rate(dec)
 
-    # ------------------------------------------------------------ accès générique
+    # ------------------------------------------------------------ generic access
     def send(self, cmd):
-        """Envoie une commande SCPI brute (pas de réponse)."""
+        """Send a raw SCPI command (no reply)."""
         self._rp.tx_txt(cmd)
 
     def query(self, cmd):
-        """Envoie une commande SCPI et renvoie la réponse texte."""
+        """Send a SCPI command and return the text reply."""
         return self._rp.txrx_txt(cmd)
 
     def close(self):
-        """Ferme la connexion."""
+        """Close the connection."""
         if self._rp:
             self._rp.close()

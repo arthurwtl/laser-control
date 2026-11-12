@@ -5,7 +5,7 @@ Usage:
     uv run python cli.py 192.168.55.1
 """
 import sys
-import readline  # flèches haut/bas pour naviguer dans l'historique (Linux/macOS)
+import readline  # up/down arrows for history navigation (Linux/macOS)
 
 from laser import Laser
 

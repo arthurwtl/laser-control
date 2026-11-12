@@ -1,7 +1,7 @@
-"""Classe prête à l'emploi pour contrôler le laser TOPTICA DLC pro.
+"""Ready-to-use class to control the TOPTICA DLC pro laser.
 
-Elle enveloppe l'API bas niveau (`Client`) du SDK `toptica-lasersdk`
-et expose des méthodes simples et lisibles.
+Wraps the low-level `Client` API of the `toptica-lasersdk` SDK
+with simple, readable methods.
 """
 import time
 
@@ -9,105 +9,105 @@ from toptica.lasersdk.client import Client, NetworkConnection, SerialConnection
 
 
 class Laser:
-    """Contrôleur TOPTICA DLC pro.
+    """TOPTICA DLC pro controller.
 
-    Utilisation :
+    Usage:
         laser = Laser(host='192.168.1.100')   # Ethernet
         with laser:
             print(laser.serial)
     """
 
     def __init__(self, host=None, port=None):
-        """host : IP / nom DNS / n° de série (Ethernet). port : 'COM3' ou '/dev/ttyACM0' (USB)."""
+        """host : IP / DNS / serial number (Ethernet). port : 'COM3' or '/dev/ttyACM0' (USB)."""
         if host is not None:
             self._conn = NetworkConnection(host)
         elif port is not None:
             self._conn = SerialConnection(port)
         else:
-            raise ValueError("Fournir host= (Ethernet) ou port= (USB)")
+            raise ValueError("Provide host= (Ethernet) or port= (USB)")
         self._c = None
 
-    # ------------------------------------------------------------------ connexion
+    # ------------------------------------------------------------------ connection
     def __enter__(self):
-        """Ouvre la connexion au laser (appelé par le bloc `with`)."""
+        """Open the connection (called by the `with` block)."""
         self._c = Client(self._conn)
         self._c.open()
         return self
 
     def __exit__(self, *exc):
-        """Ferme la connexion (appelé automatiquement à la sortie du `with`)."""
+        """Close the connection (called automatically on `with` exit)."""
         self._c.close()
 
-    # ------------------------------------------------------------- informations
+    # --------------------------------------------------------------------- info
     @property
     def serial(self):
-        """N° de série du contrôleur."""
+        """Controller serial number."""
         return self._c.get('serial-number')
 
     @property
     def firmware(self):
-        """Version du firmware du contrôleur."""
+        """Controller firmware version."""
         return self._c.get('fw-ver')
 
     @property
     def label(self):
-        """Nom/label du laser."""
+        """Laser label/name."""
         return self._c.get('laser1:label')
 
     @property
     def health(self):
-        """État de santé global (texte)."""
+        """Global health status (text)."""
         return self._c.get('system-health-txt')
 
     @property
     def interlock_open(self):
-        """True = interlock OUVERT = le laser est bloqué et ne s'allumera pas."""
+        """True = interlock OPEN = laser is blocked and cannot turn on."""
         return self._c.get('interlock-open')
 
-    # ----------------------------------------------------------------- émission
+    # ------------------------------------------------------------------ emission
     def on(self):
-        """Active l'émission laser (le courant de consigne circule dans la diode).
+        """Turn on laser emission (the current setpoint flows into the diode).
 
-        NB : la lumière ne sort que si interlock fermé, clé sur ON et bouton
-        Émission de la façade enfoncé.
+        Note: light is emitted only if the interlock is closed, the key is ON,
+        and the front-panel Emission button is pressed.
         """
         self.set('laser1:dl:cc:enabled', True)
 
     def off(self):
-        """Coupe l'émission laser (la diode ne reçoit plus de courant)."""
+        """Turn off laser emission."""
         self.set('laser1:dl:cc:enabled', False)
 
     @property
     def is_on(self):
-        """True si l'émission est active (statut réel, lecture seule)."""
+        """True if emission is active (read-only status)."""
         return self._c.get('laser1:emission')
 
-    # ------------------------------------------------------------------- courant
+    # ------------------------------------------------------------------- current
     def set_current(self, mA):
-        """Fixe la consigne de courant diode (mA)."""
+        """Set the diode current setpoint (mA)."""
         self.set('laser1:dl:cc:current-set', float(mA))  # mA
 
     def get_current(self):
-        """Courant réellement mesuré dans la diode (mA)."""
+        """Measured diode current (mA)."""
         return self._c.get('laser1:dl:cc:current-act')  # mA
 
     def set_current_limit(self, mA):
-        """Fixe la limite de sécurité (clip) du courant (mA)."""
+        """Set the current safety limit (clip), in mA."""
         self.set('laser1:dl:cc:current-clip', float(mA))  # mA
 
-    # -------------------------------------------------------------- température
+    # -------------------------------------------------------------- temperature
     def set_temperature(self, degC):
-        """Fixe la consigne de température (°C)."""
+        """Set the temperature setpoint (°C)."""
         self.set('laser1:dl:tc:temp-set', float(degC))  # °C
 
     def get_temperature(self):
-        """Température réelle (°C)."""
+        """Measured temperature (°C)."""
         return self._c.get('laser1:dl:tc:temp-act')  # °C
 
     def wait_temperature(self, timeout=120):
-        """Bloque jusqu'à stabilisation de la température (True) ou timeout (False).
+        """Block until temperature is stable (True) or timeout (False).
 
-        timeout : secondes.
+        timeout : seconds.
         """
         t0 = time.time()
         while time.time() - t0 < timeout:
@@ -118,19 +118,19 @@ class Laser:
 
     # --------------------------------------------------------------------- piezo
     def set_offset(self, volts):
-        """Fixe la tension piezo (V)."""
+        """Set the piezo voltage (V)."""
         self.set('laser1:dl:pc:voltage-set', float(volts))  # V
 
     def get_offset(self):
-        """Tension piezo réelle (V)."""
+        """Measured piezo voltage (V)."""
         return self._c.get('laser1:dl:pc:voltage-act')  # V
 
     # ---------------------------------------------------------------------- scan
     def scan(self, frequency=10, amplitude=10, offset=0, enable=True):
-        """Configure et démarre/arrête un scan.
+        """Configure and start/stop a scan.
 
-        frequency : Hz. amplitude/offset : dans l'unité de la voie de sortie
-        (V si piezo, mA si courant — selon laser1:scan:output-channel).
+        frequency : Hz. amplitude/offset : in the output channel unit
+        (V for piezo, mA for current — see laser1:scan:output-channel).
         """
         self.set('laser1:scan:frequency', float(frequency))
         self.set('laser1:scan:amplitude', float(amplitude))
@@ -138,47 +138,47 @@ class Laser:
         self.set('laser1:scan:enabled', enable)
 
     def scan_off(self):
-        """Arrête le scan."""
+        """Stop the scan."""
         self.set('laser1:scan:enabled', False)
 
     def set_scan_output(self, channel):
-        """Route le scan vers une sortie.
-        50 = piezo, 51 = courant, 20 = Out A, 21 = Out B.
+        """Route the scan to an output channel.
+        50 = piezo, 51 = current, 20 = Out A, 21 = Out B.
         """
         self.set('laser1:scan:output-channel', int(channel))
 
-    # ------------------------------------------------------- verrouillage (lock)
+    # --------------------------------------------------------------------- lock
     def lock_on(self):
-        """Active la boucle de verrouillage de fréquence (licence Lock requise)."""
+        """Enable the frequency lock (Lock license required)."""
         self.set('laser1:dl:lock:lock-enabled', True)
 
     def lock_off(self):
-        """Désactive le verrouillage."""
+        """Disable the lock."""
         self.set('laser1:dl:lock:lock-enabled', False)
 
     @property
     def lock_state(self):
-        """État textuel du verrouillage."""
+        """Textual lock state."""
         return self._c.get('laser1:dl:lock:state-txt')
 
-    # --------------------------------------------------------------- persistance
+    # --------------------------------------------------------------- persistence
     def save(self):
-        """Sauvegarde les paramètres courants (survivent au redémarrage)."""
+        """Save current parameters (survive reboot)."""
         self._c.exec('laser1:save')
 
     def load(self):
-        """Recharge les paramètres sauvegardés."""
+        """Reload saved parameters."""
         self._c.exec('laser1:load')
 
-    # ------------------------------------------------------------------- sécurité
+    # ------------------------------------------------------------------- safety
     def shutdown(self):
-        """Coupe l'émission, puis ramène la consigne de courant à 0."""
+        """Turn off emission, then set the current to 0."""
         self.off()
         self.set_current(0)
 
-    # ------------------------------------------------------------ accès générique
+    # ------------------------------------------------------------ generic access
     def get(self, name):
-        """Lit n'importe quel paramètre de la Command Reference."""
+        """Read any parameter from the Command Reference."""
         return self._c.get(name)
 
     def set(self, name, value):
@@ -204,5 +204,5 @@ class Laser:
         return msg
 
     def exec(self, name, **kwargs):
-        """Exécute n'importe quelle commande de la Command Reference."""
+        """Execute any command from the Command Reference."""
         return self._c.exec(name, **kwargs)

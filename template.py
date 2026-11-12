@@ -15,7 +15,7 @@ def main():
         print("Health   :", laser.health)
         print("Interlock:", "OPEN" if laser.interlock_open else "closed")
 
-        # coder ici
+        # code here
 
 
 if __name__ == "__main__":

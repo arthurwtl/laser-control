@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Donne l'IP 192.168.55.2 a l'interface du laser (le laser est en 192.168.55.1).
+# Assign IP 192.168.55.2 to the laser interface (laser is at 192.168.55.1).
 set -e
 
 IFACE="enp3s0f4u1"

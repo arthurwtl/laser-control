@@ -13,7 +13,7 @@ def main():
         rp.tx_txt('*IDN?')
         print("Connected:", rp.rx_txt())
 
-        # coder ici
+        # code here
 
 
 if __name__ == "__main__":

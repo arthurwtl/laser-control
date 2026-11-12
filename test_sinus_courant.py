@@ -7,19 +7,19 @@ from laser import Laser
 HOST = "192.168.55.1"
 
 FREQ = 100.0      # Hz
-OFFSET = 75.0   # mA (centre du sinus)
-AMP = 10.0      # mA (amplitude) -> balayage de 64 a 100 mA
-POINTS = 80      # points par periode
+OFFSET = 75.0   # mA (sine center)
+AMP = 10.0      # mA (amplitude)
+POINTS = 80      # points per period
 
 
 def main():
     host = sys.argv[1] if len(sys.argv) > 1 else HOST
-    dt = 1.0 / (FREQ * POINTS)      # intervalle entre deux points (s)
+    dt = 1.0 / (FREQ * POINTS)      # interval between two points (s)
 
     with Laser(host=host) as laser:
         print("Connected:", laser.serial)
 
-        laser.on()   # émission ON pour que le courant circule réellement
+        laser.on()   # emission ON so the current actually flows
 
         try:
             t0 = time.monotonic()

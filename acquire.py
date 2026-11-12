@@ -1,10 +1,10 @@
-"""acquire.py — acquisition temps réel sur la Red Pitaya.
+"""acquire.py — real-time acquisition on the Red Pitaya.
 
-Lance-le, puis modifie librement le laser (fréquence de scan, etc.).
-Le script relit la fréquence de scan toutes les ~2 s et adapte la
-fenêtre pour afficher ~2 périodes, en temps réel.
+Run it, then freely adjust the laser (scan frequency, etc.).
+The script re-reads the scan frequency every ~2 s and adapts the
+window to display ~2 periods, in real time.
 
-Usage :
+Usage:
     uv run python acquire.py [IP_redpitaya] [IP_laser]
 """
 import math
@@ -18,8 +18,8 @@ from redpitaya import RedPitaya
 
 RP_HOST = "169.254.140.238"
 LASER_HOST = "192.168.55.1"
-FREQ_REFRESH = 2.0   # s — relecture de la fréquence de scan
-PERIODS = 2          # nombre de périodes affichées
+FREQ_REFRESH = 2.0   # s — scan frequency re-read
+PERIODS = 2          # periods displayed
 
 
 def main():
@@ -30,11 +30,11 @@ def main():
     fig, ax = plt.subplots()
 
     with RedPitaya(rp_host) as rp, Laser(host=laser_host) as laser:
-        freq = 10.0            # valeur par défaut avant la première lecture
-        last_read = -1e9       # force la lecture immédiate
+        freq = 10.0            # default before first read
+        last_read = -1e9       # force immediate read
 
         while True:
-            # relire la fréquence de scan régulièrement
+            # re-read the scan frequency periodically
             if time.monotonic() - last_read > FREQ_REFRESH:
                 try:
                     freq = float(laser.get('laser1:scan:frequency'))
@@ -42,11 +42,11 @@ def main():
                 except Exception:
                     pass
 
-            # décimation (puissance de 2) pour ~2 périodes
+            # decimation (power of 2) for ~2 periods
             target = PERIODS * rp.ADC_RATE / (rp.BUFFER * freq)
             dec = max(1, min(65536, 2 ** int(round(math.log2(target)))))
 
-            # acquisition one-shot (fiable : reset + flush à chaque fois)
+            # one-shot acquisition (reset + flush each time)
             v = rp.acquire(dec=dec)
             t = rp.time_axis(dec) * 1e3
 

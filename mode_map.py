@@ -1,10 +1,10 @@
-"""mode_map.py — carte des sauts de mode (courant x piezo).
+"""mode_map.py — mode-hop map (current x piezo).
 
-Pour chaque courant (axe Y), scanne le piezo (axe X) et enregistre
-l'intensite de la photodiode (Red Pitaya). Affiche la carte et la
-sauvegarde dans mode_map.npy (ecrase la carte precedente).
+For each current (Y axis), scans the piezo (X axis) and records the
+photodiode intensity (Red Pitaya). Displays the map and saves it to
+mode_map.npy (overwrites the previous map).
 
-Usage :
+Usage:
     uv run python mode_map.py [IP_laser] [IP_redpitaya]
 """
 import math
@@ -20,13 +20,13 @@ from redpitaya import RedPitaya
 LASER_HOST = "192.168.55.1"
 RP_HOST = "169.254.140.238"
 
-CURRENTS = np.arange(70, 110, 1)   # mA — axe Y (pas de 1 mA)
-SCAN_FREQ = 20.0                   # Hz — vitesse de scan piezo
-SCAN_AMP = 20.0                    # V — amplitude piezo (peak-to-peak)
-SCAN_OFFSET = 50.0                 # V — centre piezo
-SETTLE = 0.1                       # s — stabilisation du courant
+CURRENTS = np.arange(70, 110, 1)   # mA — Y axis (1 mA step)
+SCAN_FREQ = 20.0                   # Hz — piezo scan rate
+SCAN_AMP = 20.0                    # V — piezo amplitude (peak-to-peak)
+SCAN_OFFSET = 50.0                 # V — piezo center
+SETTLE = 0.1                       # s — current settling
 
-# décimation (puissance de 2) pour ~1 période de scan
+# decimation (power of 2) for ~1 scan period
 _target = RedPitaya.ADC_RATE / (RedPitaya.BUFFER * SCAN_FREQ)
 DEC = max(1, min(65536, 2 ** int(round(math.log2(_target)))))
 
@@ -39,7 +39,7 @@ def main():
         laser.set_scan_output(50)   # scan -> piezo
         laser.scan(frequency=SCAN_FREQ, amplitude=SCAN_AMP, offset=SCAN_OFFSET, enable=True)
 
-        t = rp.time_axis(DEC) * 1e3  # ms (identique pour toutes les lignes)
+        t = rp.time_axis(DEC) * 1e3  # ms (same for all rows)
 
         rows = []
         for mA in CURRENTS:
@@ -52,7 +52,7 @@ def main():
         laser.scan_off()
 
         data = np.array(rows)
-        np.save("mode_map.npy", data)   # écrase la carte précédente
+        np.save("mode_map.npy", data)   # overwrites the previous map
 
         plt.imshow(data, aspect="auto", origin="lower",
                    extent=[t[0], t[-1], CURRENTS[0], CURRENTS[-1]], cmap="viridis")
