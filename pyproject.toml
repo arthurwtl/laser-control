@@ -7,4 +7,5 @@ requires-python = ">=3.10"
 dependencies = [
     "toptica-lasersdk>=3.3.0",
     "numpy>=1.26",
+    "matplotlib>=3.10.9",
 ]

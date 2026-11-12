@@ -58,6 +58,7 @@ def _status(laser, args):
     print()
     print("scan:")
     print("  state    :", "ON" if laser.get('laser1:scan:enabled') else "OFF")
+    print("  channel  :", laser.get('laser1:scan:output-channel'))
     print("  amplitude:", laser.get('laser1:scan:amplitude'), "V")
     print("  offset   :", laser.get('laser1:scan:offset'), "V")
     print("  actual   :", laser.get_offset(), "V")
@@ -91,12 +92,13 @@ SETTERS = {
     "offset":  ("V",  lambda laser, v: laser.set_offset(v)),
     "amp":     ("V",  lambda laser, v: laser.set('laser1:scan:amplitude', v)),
     "freq":    ("Hz", lambda laser, v: laser.set('laser1:scan:frequency', v)),
+    "output":  ("",   lambda laser, v: laser.set_scan_output(int(v))),
 }
 
 
 @command("set")
 def _set(laser, args):
-    "set current|temp|offset|amp|freq <value>"
+    "set current|temp|offset|amp|freq|output <value>"
     if len(args) < 2:
         print("usage: set", "/".join(SETTERS), "<value>")
         return

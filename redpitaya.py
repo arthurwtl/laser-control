@@ -42,20 +42,22 @@ class RedPitaya:
         return self._rp.txrx_txt('*IDN?')
 
     # -------------------------------------------------------------- acquisition
-    def acquire(self, channel=1, dec=1):
-        """Acquiert les 16384 échantillons du canal (1 ou 2) → np.ndarray en volts.
-
-        dec : décimation (puissances de 2 : 1, 2, 4, ..., 65536).
-              taux = ADC_RATE / dec, durée = BUFFER / taux.
-        """
+    def arm(self, dec):
+        """Arme l'acquisition et jette le buffer périmé (une seule fois par décimation)."""
         rp = self._rp
         rp.tx_txt('ACQ:RST')
         rp.tx_txt(f'ACQ:DEC {dec}')
         rp.tx_txt('ACQ:START')
-        # attendre un buffer complet de données fraîches avant de déclencher,
-        # sinon les premières valeurs peuvent être périmées (cf. doc Red Pitaya)
         time.sleep(self.BUFFER / self.sample_rate(dec))
+
+    def read(self, channel=1):
+        """Déclenche et lit une acquisition (sans re-jeter le buffer)."""
+        rp = self._rp
         rp.tx_txt('ACQ:TRIG NOW')
+        while True:
+            rp.tx_txt('ACQ:TRIG:STAT?')
+            if rp.rx_txt() == 'TD':
+                break
         while True:
             rp.tx_txt('ACQ:TRIG:FILL?')
             if rp.rx_txt() == '1':
@@ -64,9 +66,15 @@ class RedPitaya:
         s = rp.rx_txt()
         return np.array([float(x) for x in s.strip('{}\n\r').split(',')])
 
+    def acquire(self, channel=1, dec=1):
+        """Acquisition one-shot (arme puis lit)."""
+        self.arm(dec)
+        return self.read(channel)
+
     def intensity(self, channel=1, dec=65536, n=10):
         """Intensité moyenne (V) sur n acquisitions → (moyenne, écart-type)."""
-        vals = [self.acquire(channel, dec).mean() for _ in range(n)]
+        self.arm(dec)
+        vals = [self.read(channel).mean() for _ in range(n)]
         return float(np.mean(vals)), float(np.std(vals))
 
     # ------------------------------------------------------------------ helpers

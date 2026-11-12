@@ -141,6 +141,12 @@ class Laser:
         """Arrête le scan."""
         self.set('laser1:scan:enabled', False)
 
+    def set_scan_output(self, channel):
+        """Route le scan vers une sortie.
+        50 = piezo, 51 = courant, 20 = Out A, 21 = Out B.
+        """
+        self.set('laser1:scan:output-channel', int(channel))
+
     # ------------------------------------------------------- verrouillage (lock)
     def lock_on(self):
         """Active la boucle de verrouillage de fréquence (licence Lock requise)."""
